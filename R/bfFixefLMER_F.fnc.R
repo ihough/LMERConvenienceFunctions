@@ -45,7 +45,7 @@ bfFixefLMER_F.fnc<-function (model, item = FALSE, method = c("F", "llrt", "AIC",
   data <- model@frame
   if (method[1] != "F" & set.REML.FALSE) {
     cat("setting REML to FALSE\n")
-    model <- update(model, . ~ ., REML = FALSE)
+    model <- update(model, . ~ ., data = data, REML = FALSE)
   }
   options(warn = 1)
   temp.dir <- tempdir()
@@ -57,7 +57,7 @@ bfFixefLMER_F.fnc<-function (model, item = FALSE, method = c("F", "llrt", "AIC",
   if (item != FALSE) {
     cat("checking", paste("by-", item, sep = ""), "random intercepts\n")
     model.updated <- NULL
-    eval(parse(text = paste("model.updated<-update(model,.~.+(1|", item, "))", sep = "")))
+    eval(parse(text = paste("model.updated<-update(model,.~.+(1|", item, "),data=data)", sep = "")))
     if (as.vector(anova(model, model.updated)[2, "Pr(>Chisq)"]) <= alphaitem) {
       cat("  log-likelihood ratio test p-value =", as.vector(anova(model, model.updated)[2, "Pr(>Chisq)"]), "\n")
       cat("  adding", paste("by-", item, sep = ""), "random intercepts to model\n")
@@ -122,7 +122,7 @@ bfFixefLMER_F.fnc<-function (model, item = FALSE, method = c("F", "llrt", "AIC",
         else {
           cat("    not part of higher-order interaction\n")
           m.temp <- NULL
-          eval(parse(text = paste("m.temp<-update(model,.~.-", evaluated.term, ")", sep = "")))
+          eval(parse(text = paste("m.temp<-update(model,.~.-", evaluated.term, ",data=data)", sep = "")))
           if (method[1] == "llrt") {
             if (as.vector(anova(model, m.temp)[2, "Pr(>Chisq)"]) <= threshold) {
               cat("    log-likelihood ratio test p-value =", as.vector(anova(model, m.temp)[2, "Pr(>Chisq)"]), "<=", threshold, "\n")
@@ -225,7 +225,7 @@ bfFixefLMER_F.fnc<-function (model, item = FALSE, method = c("F", "llrt", "AIC",
   }
   if (reset.REML.TRUE) {
     cat("resetting REML to TRUE\n")
-    model <- update(model, . ~ ., REML = TRUE)
+    model <- update(model, . ~ ., data = data, REML = TRUE)
   }
   if (prune.ranefs) {
     cat("pruning random effects structure ...\n")

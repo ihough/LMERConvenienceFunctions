@@ -39,13 +39,13 @@ bfFixefLMER_t.fnc<-function (model, item = FALSE, method = c("t", "z", "llrt", "
   if (is.null(log.file)) {
     log.file <- file.path(tempdir(), paste("bfFixefLMER_t_log_", gsub(":", "-", gsub("", "_", date())), ".txt", sep = ""))
   }
+  data <- model@frame
   if ((method[1] != "t" & set.REML.FALSE) || (method[1] != "z" & set.REML.FALSE)) {
 	if(!as.vector(model@call[1]) == "glmer()"){
     	cat("setting REML to FALSE\n")
-    	model <- update(model, . ~ ., REML = FALSE)
+    	model <- update(model, . ~ ., data = data, REML = FALSE)
 	}
   }
-  data <- model@frame
   statistic <- "t-value"
   temp.dir <- tempdir()
   tempdir()
@@ -57,7 +57,7 @@ bfFixefLMER_t.fnc<-function (model, item = FALSE, method = c("t", "z", "llrt", "
   if (item != FALSE) {
     cat("checking", paste("by-", item, sep = ""), "random intercepts\n")
     model.updated <- NULL
-    eval(parse(text = paste("model.updated=update(model,.~.+(1|", item, "))", sep = "")))
+    eval(parse(text = paste("model.updated=update(model,.~.+(1|", item, "),data=data)", sep = "")))
     if (as.vector(anova(model, model.updated)[2, "Pr(>Chisq)"]) <= alphaitem) {
       cat("  log-likelihood ratio test p-value =", as.vector(anova(model, model.updated)[2, "Pr(>Chisq)"]), "\n")
       cat("  adding", paste("by-", item, sep = ""), "random intercepts to model\n")
@@ -156,7 +156,7 @@ bfFixefLMER_t.fnc<-function (model, item = FALSE, method = c("t", "z", "llrt", "
       else {
         cat("     not part of higher-order interaction\n")
         m.temp <- NULL
-        eval(parse(text = paste("m.temp=update(model,.~.-", row.names(smry.temp2[smry.temp2[, 3] == min(smry.temp2[, 3]), ])[1], ")", sep = "")))
+        eval(parse(text = paste("m.temp=update(model,.~.-", row.names(smry.temp2[smry.temp2[, 3] == min(smry.temp2[, 3]), ])[1], ",data=data)", sep = "")))
         if (method[1] == "llrt") {
           if (as.vector(anova(model, m.temp)[2, "Pr(>Chisq)"]) <= threshold) {
             cat("    log-likelihood ratio test p-value =", as.vector(anova(model, m.temp)[2, "Pr(>Chisq)"]), "<=", threshold, "\n")
@@ -295,7 +295,7 @@ bfFixefLMER_t.fnc<-function (model, item = FALSE, method = c("t", "z", "llrt", "
   if (reset.REML.TRUE) {
 	if(!as.vector(model@call[1]) == "glmer()"){
     	cat("resetting REML to TRUE\n")
-    	model <- update(model, . ~ ., REML = TRUE)
+    	model <- update(model, . ~ ., data = data, REML = TRUE)
 	}
   }
   if (prune.ranefs) {
